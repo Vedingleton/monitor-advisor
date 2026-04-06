@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Advisor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+
+    .mode-toggle {
+      display: flex;
+      background: #111;
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 1.5rem;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: transparent;
+      color: #888;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: #76b900;
+      color: #000;
+      font-weight: 600;
+    }
+
+    .field {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 0.4rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: #76b900;
+    }
+
+    button.calculate {
+      width: 100%;
+      padding: 0.75rem;
+      background: #76b900;
+      color: #000;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: opacity 0.2s;
+    }
+
+    button.calculate:hover { opacity: 0.85; }
+
+    .results {
+      margin-top: 1.5rem;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .result-box {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .result-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #76b900;
+    }
+
+    .result-note {
+      font-size: 0.75rem;
+      color: #555;
+      margin-top: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .error {
+      color: #ff5555;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Monitor Advisor</h1>
+    <p class="subtitle">Based on human visual acuity — 1.67 arcminute resolution limit</p>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="switchMode('distance')">Find viewing distance</button>
+      <button class="mode-btn" onclick="switchMode('resolution')">Find resolution</button>
+    </div>
+
+    <!-- MODE 1: find ideal viewing distance -->
+    <div id="mode-distance">
+      <div class="field">
+        <label>Screen size (inches, diagonal)</label>
+        <input type="number" id="d-size" placeholder="e.g. 27" min="1">
+      </div>
+      <div class="field">
+        <label>Resolution</label>
+        <select id="d-res">
+          <option value="1920x1080">1080p — 1920 × 1080</option>
+          <option value="2560x1440">1440p — 2560 × 1440</option>
+          <option value="3840x2160">4K — 3840 × 2160</option>
+          <option value="2560x1080">Ultrawide 1080p — 2560 × 1080</option>
+          <option value="3440x1440">Ultrawide 1440p — 3440 × 1440</option>
+          <option value="custom">Custom...</option>
+        </select>
+      </div>
+      <div class="field" id="custom-res-field" style="display:none; flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:8px;">
+          <input type="number" id="d-custom-w" placeholder="Width px" min="1">
+          <input type="number" id="d-custom-h" placeholder="Height px" min="1">
+        </div>
+      </div>
+      <button class="calculate" onclick="calcDistance()">Calculate</button>
+    </div>
+
+    <!-- MODE 2: find minimum resolution -->
+    <div id="mode-resolution" style="display:none;">
+      <div class="field">
+        <label>Screen size (inches, diagonal)</label>
+        <input type="number" id="r-size" placeholder="e.g. 27" min="1">
+      </div>
+      <div class="field">
+        <label>Viewing distance (cm)</label>
+        <input type="number" id="r-dist" placeholder="e.g. 60" min="1">
+      </div>
+      <button class="calculate" onclick="calcResolution()">Calculate</button>
+    </div>
+
+    <p class="error" id="error-msg">Please fill in all fields correctly.</p>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <script>
+    let currentMode = 'distance';
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('mode-distance').style.display = mode === 'distance' ? 'block' : 'none';
+      document.getElementById('mode-resolution').style.display = mode === 'resolution' ? 'block' : 'none';
+      document.querySelectorAll('.mode-btn').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0 && mode === 'distance') || (i === 1 && mode === 'resolution'));
+      });
+      hideResults();
+    }
+
+    document.getElementById('d-res').addEventListener('change', function() {
+      document.getElementById('custom-res-field').style.display = this.value === 'custom' ? 'flex' : 'none';
+    });
+
+    // Core formula: ideal distance = pixel_pitch_mm * 3438
+    // pixel_pitch = (screen_size_inches * 25.4) / diagonal_pixels
+    // diagonal_pixels = sqrt(w^2 + h^2)
+
+    function getPPI(sizein, w, h) {
+      const diagPx = Math.sqrt(w * w + h * h);
+      return diagPx / sizein;
+    }
+
+    function idealDistance_cm(sizein, w, h) {
+      const diagPx = Math.sqrt(w * w + h * h);
+      const pixelPitch_mm = (sizein * 25.4) / diagPx;
+      const dist_mm = pixelPitch_mm * 2600;
+      return dist_mm / 10;
+    }
+
+    function minDiagPixels(sizein, dist_cm) {
+      const dist_mm = dist_cm * 10;
+      const pixelPitch_mm = dist_mm / 2600;
+      const diagPx = (sizein * 25.4) / pixelPitch_mm;
+      return diagPx;
+    }
+
+    function parseResolution(selectId, wId, hId) {
+      const sel = document.getElementById(selectId).value;
+      if (sel === 'custom') {
+        const w = parseFloat(document.getElementById(wId).value);
+        const h = parseFloat(document.getElementById(hId).value);
+        return { w, h };
+      }
+      const parts = sel.split('x');
+      return { w: parseFloat(parts[0]), h: parseFloat(parts[1]) };
+    }
+
+    function calcDistance() {
+      const size = parseFloat(document.getElementById('d-size').value);
+      const { w, h } = parseResolution('d-res', 'd-custom-w', 'd-custom-h');
+      if (!size || !w || !h || size <= 0) { showError(); return; }
+
+      const dist = idealDistance_cm(size, w, h);
+      const ppi = getPPI(size, w, h);
+
+      showResults([
+        { label: 'Minimum recommended seating distance', value: Math.round(dist) + ' cm', sub: Math.round(dist / 2.54) + ' inches' },
+        { label: 'Pixel density', value: Math.round(ppi) + ' PPI', sub: 'pixels per inch' },
+        { label: 'Pixel pitch', value: ((size * 25.4) / Math.sqrt(w*w+h*h)).toFixed(3) + ' mm', sub: 'physical size of one pixel' }
+      ], 'Sitting closer than ' + Math.round(dist) + ' cm, individual pixels become invisible to 20/20 vision. Beyond this distance, higher resolution won\'t help.');
+    }
+
+    function calcResolution() {
+      const size = parseFloat(document.getElementById('r-size').value);
+      const dist = parseFloat(document.getElementById('r-dist').value);
+      if (!size || !dist || size <= 0 || dist <= 0) { showError(); return; }
+
+      const diagPx = minDiagPixels(size, dist);
+      const ppi = diagPx / size;
+
+      let recommended = '4K (3840×2160)';
+      if (diagPx <= Math.sqrt(1920*1920 + 1080*1080)) recommended = '1080p (1920×1080)';
+      else if (diagPx <= Math.sqrt(2560*2560 + 1440*1440)) recommended = '1440p (2560×1440)';
+
+      const tolerance = '± 5–10cm either way may change the recommendation — if you\'re on the edge, try the lower resolution first.';
+
+      showResults([
+        { label: 'Minimum resolution', value: recommended, sub: 'to avoid visible pixels at this distance' },
+        { label: 'Min diagonal pixels needed', value: Math.round(diagPx) + 'px', sub: 'diagonal pixel count' },
+        { label: 'Min PPI needed', value: Math.round(ppi) + ' PPI', sub: 'at ' + dist + 'cm viewing distance' }
+      ], 'At ' + dist + 'cm from a ' + size + '" screen you need at least ' + Math.round(ppi) + ' PPI. ' + tolerance);
+    }
+
+    function showResults(items, note) {
+      hideError();
+      const container = document.getElementById('results');
+      container.innerHTML = items.map(item => `
+        <div class="result-box">
+          <span class="result-label">${item.label}</span>
+          <div style="text-align:right">
+            <div class="result-value">${item.value}</div>
+            <div style="font-size:0.75rem; color:#555;">${item.sub}</div>
+          </div>
+        </div>
+      `).join('') + `<p class="result-note">${note}</p>`;
+      container.style.display = 'flex';
+    }
+
+    function hideResults() {
+      document.getElementById('results').style.display = 'none';
+    }
+
+    function showError() {
+      const el = document.getElementById('error-msg');
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    function hideError() {
+      document.getElementById('error-msg').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
