@@ -24,11 +24,11 @@
       border-radius: 12px;
       padding: 2rem;
       width: 100%;
-      max-width: 480px;
+      max-width: 680px;
     }
 
     h1 {
-      font-size: 1.4rem;
+      font-size: 2rem;
       font-weight: 600;
       margin-bottom: 0.3rem;
       color: #ffffff;
@@ -36,7 +36,7 @@
 
     .subtitle {
       font-size: 0.85rem;
-      color: #888;
+      color: #aaa;
       margin-bottom: 1.5rem;
     }
 
@@ -123,8 +123,8 @@
       border-radius: 8px;
       padding: 1rem 1.2rem;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .result-label {
@@ -136,6 +136,7 @@
       font-size: 1.2rem;
       font-weight: 600;
       color: #76b900;
+      line-height: 1.4;
     }
 
     .result-note {
@@ -156,7 +157,7 @@
 <body>
   <div class="card">
     <h1>Monitor Advisor</h1>
-    <p class="subtitle">Based on human visual acuity — 1.67 arcminute resolution limit</p>
+    <p class="subtitle">Nobody wants to see pixels on their screen — unless you're into retro, fair enough. To make sure you don't see them, enter your monitor size and resolution to find your ideal viewing distance, or enter your screen size and how far you sit to find out what resolution you actually need</p>
 
     <div class="mode-toggle">
       <button class="mode-btn active" onclick="switchMode('distance')">Find viewing distance</button>
@@ -172,11 +173,24 @@
       <div class="field">
         <label>Resolution</label>
         <select id="d-res">
-          <option value="1920x1080">1080p — 1920 × 1080</option>
-          <option value="2560x1440">1440p — 2560 × 1440</option>
-          <option value="3840x2160">4K — 3840 × 2160</option>
-          <option value="2560x1080">Ultrawide 1080p — 2560 × 1080</option>
-          <option value="3440x1440">Ultrawide 1440p — 3440 × 1440</option>
+          <optgroup label="Windows / Standard:">
+            <option value="1920x1080">1080p — 1920×1080</option>
+            <option value="2560x1440">1440p — 2560×1440</option>
+            <option value="3840x2160">4K — 3840×2160</option>
+            <option value="2560x1080">Ultrawide 1080p — 2560×1080</option>
+            <option value="3440x1440">Ultrawide 1440p — 3440×1440</option>
+            <option value="3840x1600">4K Ultrawide standard (3840×1600)</option>
+            <option value="5120x2160">4K Ultrawide true (5120×2160)</option>
+            <option value="7680x2160">8K Ultrawide (7680×2160)</option>
+          </optgroup>
+          <optgroup label="Apple:">
+            <option value="2560x1664">MacBook Air 13" (2560×1664)</option>
+            <option value="2880x1864">MacBook Air 15" (2880×1864)</option>
+            <option value="3024x1964">MacBook Pro 14" (3024×1964)</option>
+            <option value="3456x2234">MacBook Pro 16" (3456×2234)</option>
+            <option value="5120x2880">Apple Studio Display 27" (5120×2880)</option>
+            <option value="6016x3384">Apple Pro Display XDR 32" (6016×3384)</option>
+          </optgroup>
           <option value="custom">Custom...</option>
         </select>
       </div>
@@ -267,9 +281,9 @@
       const ppi = getPPI(size, w, h);
 
       showResults([
-        { label: 'Minimum recommended seating distance', value: Math.round(dist) + ' cm', sub: Math.round(dist / 2.54) + ' inches' },
-        { label: 'Pixel density', value: Math.round(ppi) + ' PPI', sub: 'pixels per inch' },
-        { label: 'Pixel pitch', value: ((size * 25.4) / Math.sqrt(w*w+h*h)).toFixed(3) + ' mm', sub: 'physical size of one pixel' }
+        { label: 'Minimum recommended seating distance:', value: Math.round(dist) + ' cm', sub: Math.round(dist / 2.54) + ' inches' },
+        { label: 'Pixel density:', value: Math.round(ppi) + ' PPI', sub: 'pixels per inch' },
+        { label: 'Pixel pitch:', value: ((size * 25.4) / Math.sqrt(w*w+h*h)).toFixed(3) + ' mm', sub: 'physical size of one pixel' }
       ], 'Sitting closer than ' + Math.round(dist) + ' cm, individual pixels become invisible to 20/20 vision. Beyond this distance, higher resolution won\'t help.');
     }
 
@@ -281,16 +295,50 @@
       const diagPx = minDiagPixels(size, dist);
       const ppi = diagPx / size;
 
-      let recommended = '4K (3840×2160)';
-      if (diagPx <= Math.sqrt(1920*1920 + 1080*1080)) recommended = '1080p (1920×1080)';
-      else if (diagPx <= Math.sqrt(2560*2560 + 1440*1440)) recommended = '1440p (2560×1440)';
+      let recommended = '';
+      if (diagPx <= Math.sqrt(1920*1920 + 1080*1080)) {
+        recommended = '1080p (1920×1080)';
+      } else if (diagPx <= Math.sqrt(2560*2560 + 1080*1080)) {
+        recommended = 'Ultrawide 1080p (2560×1080)';
+      } else if (diagPx <= Math.sqrt(2560*2560 + 1440*1440)) {
+        if (diagPx <= Math.sqrt(2560*2560 + 1080*1080) * 1.15) {
+          recommended = 'Ultrawide 1080p (2560×1080) or 1440p (2560×1440)';
+        } else {
+          recommended = '1440p (2560×1440)';
+        }
+      } else if (diagPx <= Math.sqrt(3440*3440 + 1440*1440)) {
+        if (diagPx <= Math.sqrt(2560*2560 + 1440*1440) * 1.15) {
+          recommended = '1440p (2560×1440) or Ultrawide 1440p (3440×1440)';
+        } else {
+          recommended = 'Ultrawide 1440p (3440×1440)';
+        }
+      } else if (diagPx <= Math.sqrt(3840*3840 + 2160*2160)) {
+        if (diagPx <= Math.sqrt(3440*3440 + 1440*1440) * 1.15) {
+          recommended = 'Ultrawide 1440p (3440×1440) or 4K (3840×2160)';
+        } else {
+          recommended = '4K (3840×2160)';
+        }
+      } else if (diagPx <= Math.sqrt(5120*5120 + 2160*2160)) {
+        recommended = '4K Ultrawide (5120×2160)';
+      } else if (diagPx <= Math.sqrt(7680*7680 + 2160*2160)) {
+        recommended = '8K Ultrawide (7680×2160)';
+      } else {
+        recommended = '8K Ultrawide (7680×2160)';
+      }
+
+      let recommendedApple = 'Apple Studio Display (5120×2880)';
+      if (diagPx <= Math.sqrt(2560*2560 + 1664*1664)) recommendedApple = 'MacBook Air 13" (2560×1664)';
+      else if (diagPx <= Math.sqrt(2880*2880 + 1864*1864)) recommendedApple = 'MacBook Air 15" (2880×1864)';
+      else if (diagPx <= Math.sqrt(3024*3024 + 1964*1964)) recommendedApple = 'MacBook Pro 14" (3024×1964)';
+      else if (diagPx <= Math.sqrt(3456*3456 + 2234*2234)) recommendedApple = 'MacBook Pro 16" (3456×2234)';
 
       const tolerance = '± 5–10cm either way may change the recommendation — if you\'re on the edge, try the lower resolution first.';
 
       showResults([
-        { label: 'Minimum resolution', value: recommended, sub: 'to avoid visible pixels at this distance' },
-        { label: 'Min diagonal pixels needed', value: Math.round(diagPx) + 'px', sub: 'diagonal pixel count' },
-        { label: 'Min PPI needed', value: Math.round(ppi) + ' PPI', sub: 'at ' + dist + 'cm viewing distance' }
+        { label: 'Windows / Standard:', value: recommended, sub: 'minimum to avoid visible pixels' },
+        { label: 'Apple equivalent:', value: recommendedApple, sub: diagPx <= Math.sqrt(2560*2560 + 1664*1664) ? 'Any Apple screen will not show pixels here :)' : 'Nearest Apple display | For Apple pro users: the Studio Display (5120×2880) and Pro Display XDR (6016×3384) will exceed requirements at virtually any normal viewing distance.' },
+        { label: 'Min diagonal pixels needed:', value: Math.round(diagPx) + 'px', sub: 'diagonal pixel count' },
+        { label: 'Min PPI needed:', value: Math.round(ppi) + ' PPI', sub: 'at ' + dist + 'cm viewing distance' }
       ], 'At ' + dist + 'cm from a ' + size + '" screen you need at least ' + Math.round(ppi) + ' PPI. ' + tolerance);
     }
 
@@ -322,6 +370,15 @@
     function hideError() {
       document.getElementById('error-msg').style.display = 'none';
     }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        if (currentMode === 'distance') {
+          calcDistance();
+        } else {
+          calcResolution();
+        }
+      }
+    });
   </script>
 </body>
 </html>
