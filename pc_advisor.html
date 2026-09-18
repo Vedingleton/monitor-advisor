@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PC Bottleneck Checker — PCRigCheck</title>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07080d;
+      --bg2: #0d0f18;
+      --bg3: #12151f;
+      --border: #1e2235;
+      --border-bright: #2a3050;
+      --accent: #00c8ff;
+      --accent2: #0084a8;
+      --accent-glow: rgba(0,200,255,0.15);
+      --accent-glow2: rgba(0,200,255,0.05);
+      --green: #00e676;
+      --green-glow: rgba(0,230,118,0.15);
+      --yellow: #ffd740;
+      --yellow-glow: rgba(255,215,64,0.15);
+      --red: #ff4444;
+      --red-glow: rgba(255,68,68,0.15);
+      --text: #e8eaf0;
+      --text2: #8b91a8;
+      --text3: #4a5068;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 48px 0 40px;
+      text-align: center;
+    }
+
+    .site-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+
+    .site-badge span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: clamp(28px, 5vw, 46px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    h1 .accent { color: var(--accent); }
+
+    .subtitle {
+      color: var(--text2);
+      font-size: 15px;
+      font-weight: 400;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── SELECTOR CARD ── */
+    .selector-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .selector-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.5;
+    }
+
+    .selector-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .selector-grid { grid-template-columns: 1fr; }
+    }
+
+    .selector-group { display: flex; flex-direction: column; gap: 10px; }
+
+    .selector-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .component-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .component-icon.cpu { background: rgba(0,200,255,0.1); border: 1px solid rgba(0,200,255,0.2); }
+    .component-icon.gpu { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.15); }
+
+    .label-text {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    select {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 12px 14px;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b91a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow2); }
+    select option { background: #1a1d2e; color: var(--text); }
+    select optgroup { color: var(--accent); font-size: 12px; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      gap: 12px;
+      margin: 4px 0;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .score-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 6px;
+      min-height: 40px;
+    }
+
+    .score-label { font-size: 12px; color: var(--text3); }
+    .score-value {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      transition: all 0.3s;
+    }
+
+    .score-value.gpu-score { color: var(--green); }
+    .score-value.placeholder { color: var(--text3); font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; }
+
+    .check-btn {
+      width: 100%;
+      margin-top: 24px;
+      padding: 16px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #000;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .check-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .check-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0,200,255,0.35); }
+    .check-btn:hover::before { opacity: 1; }
+    .check-btn:active { transform: translateY(0); }
+    .check-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── RESULT CARD ── */
+    .result-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      display: none;
+      animation: slideIn 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-card.visible { display: block; }
+
+    .result-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--result-color, var(--accent)), transparent);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Verdict badge */
+    .verdict-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 100px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .verdict-badge.balanced { background: var(--green-glow); border: 1px solid var(--green); color: var(--green); }
+    .verdict-badge.cpu-bottleneck { background: var(--yellow-glow); border: 1px solid var(--yellow); color: var(--yellow); }
+    .verdict-badge.gpu-bottleneck { background: rgba(0,200,255,0.1); border: 1px solid var(--accent); color: var(--accent); }
+    .verdict-badge.severe { background: var(--red-glow); border: 1px solid var(--red); color: var(--red); }
+
+    .verdict-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+    .bottleneck-pct {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .bottleneck-pct-label {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+
+    /* Bar comparison */
+    .bar-section { margin-bottom: 24px; }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .bar-name {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      width: 38px;
+      color: var(--text2);
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 10px;
+      background: var(--bg3);
+      border-radius: 100px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      width: 0;
+      transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .bar-fill.cpu { background: linear-gradient(90deg, #0084a8, #00c8ff); }
+    .bar-fill.gpu { background: linear-gradient(90deg, #00a855, #00e676); }
+
+    .bar-score {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      width: 48px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .bar-score.cpu { color: var(--accent); }
+    .bar-score.gpu { color: var(--green); }
+
+    .bar-chip-name {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: -6px;
+      margin-bottom: 8px;
+      padding-left: 52px;
+    }
+
+    /* Gauge */
+    .gauge-section {
+      margin-bottom: 28px;
+    }
+
+    .gauge-label {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 10px;
+    }
+
+    .gauge-track {
+      height: 8px;
+      background: var(--bg3);
+      border-radius: 100px;
+      overflow: visible;
+      position: relative;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      border-radius: 100px;
+      width: 0;
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+    }
+
+    .gauge-fill::after {
+      content: '';
+      position: absolute;
+      right: -2px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .gauge-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .gauge-tick {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'Chakra Petch', sans-serif;
+    }
+
+    /* Advice block */
+    .advice-block {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+
+    .advice-title {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 10px;
+    }
+
+    .advice-text {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+
+    .advice-text strong { color: var(--text); font-weight: 500; }
+
+    /* Stat chips */
+    .stat-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .stat-chip-val {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-chip-label {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 3px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding-top: 48px;
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.8;
+    }
+
+    footer a { color: var(--text3); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+
+    .disclaimer {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 40px;
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="site-badge"><span></span>PCRigCheck.com</div>
+    <h1>PC <span class="accent">Bottleneck</span> Checker</h1>
+    <p class="subtitle">Select your CPU and GPU to instantly see which component is limiting your system's performance.</p>
+  </header>
+
+  <!-- SELECTOR CARD -->
+  <div class="selector-card">
+    <div class="selector-grid">
+
+      <!-- CPU -->
+      <div class="selector-group">
+        <div class="selector-header">
+          <div class="component-icon cpu">🔲</div>
+          <span class="label-text">Processor (CPU)</span>
+        </div>
+        <select id="cpu-series" onchange="populateCPU()">
+          <option value="">— Select Series —</option>
+        </select>
+        <select id="cpu-model" onchange="updateScores()" disabled>
+          <option value="">— Select Model —</option>
+        </select>
+        <div class="score-display">
+          <span class="score-label">Performance Score</span>
+          <span id="cpu-score-val" class="score-value placeholder">Select CPU</span>
+        </div>
+      </div>
+
+      <!-- GPU -->
+      <div class="selector-group">
+        <div class="selector-header">
+          <div class="component-icon gpu">🎮</div>
+          <span class="label-text">Graphics Card (GPU)</span>
+        </div>
+        <select id="gpu-series" onchange="populateGPU()">
+          <option value="">— Select Series —</option>
+        </select>
+        <select id="gpu-model" onchange="updateScores()" disabled>
+          <option value="">— Select Model —</option>
+        </select>
+        <div class="score-display">
+          <span class="score-label">Performance Score</span>
+          <span id="gpu-score-val" class="score-value gpu-score placeholder">Select GPU</span>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="check-btn" id="check-btn" disabled onclick="runCheck()">
+      Analyse Bottleneck
+    </button>
+  </div>
+
+  <div class="disclaimer">
+    ⚡ Scores are benchmarked relative to Ryzen 7 9850X3D (CPU) and RTX 5090 (GPU) at 100%. Results reflect general gaming performance — real-world bottlenecks vary by game, resolution, and settings.
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="result-card" id="result-card">
+
+    <div class="verdict-row">
+      <div>
+        <span id="verdict-badge" class="verdict-badge">—</span>
+        <div style="margin-top:12px">
+          <div id="bottleneck-pct" class="bottleneck-pct" style="color: var(--accent)">—</div>
+          <div class="bottleneck-pct-label">Bottleneck Severity</div>
+        </div>
+      </div>
+      <div class="stat-row" style="align-items:flex-start">
+        <div class="stat-chip">
+          <div class="stat-chip-val" id="stat-cpu-score">—</div>
+          <div class="stat-chip-label">CPU Score</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-val" id="stat-gpu-score">—</div>
+          <div class="stat-chip-label">GPU Score</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-val" id="stat-ratio">—</div>
+          <div class="stat-chip-label">Balance Ratio</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bar comparison -->
+    <div class="bar-section">
+      <div class="gauge-label">Component Comparison</div>
+      <div class="bar-row">
+        <span class="bar-name">CPU</span>
+        <div class="bar-track"><div class="bar-fill cpu" id="bar-cpu"></div></div>
+        <span class="bar-score cpu" id="bar-cpu-score">—</span>
+      </div>
+      <div class="bar-chip-name" id="bar-cpu-name"></div>
+      <div class="bar-row">
+        <span class="bar-name">GPU</span>
+        <div class="bar-track"><div class="bar-fill gpu" id="bar-gpu"></div></div>
+        <span class="bar-score gpu" id="bar-gpu-score">—</span>
+      </div>
+      <div class="bar-chip-name" id="bar-gpu-name"></div>
+    </div>
+
+    <!-- Severity gauge -->
+    <div class="gauge-section">
+      <div class="gauge-label">Bottleneck Severity</div>
+      <div class="gauge-track">
+        <div class="gauge-fill" id="gauge-fill" style="color: var(--green)"></div>
+      </div>
+      <div class="gauge-ticks">
+        <span class="gauge-tick">0% Balanced</span>
+        <span class="gauge-tick">25% Moderate</span>
+        <span class="gauge-tick">50%+ Severe</span>
+      </div>
+    </div>
+
+    <!-- Advice -->
+    <div class="advice-block" id="advice-block">
+      <div class="advice-title">💡 What This Means</div>
+      <div class="advice-text" id="advice-text">—</div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>PCRigCheck.com · Free PC Tools</p>
+    <p style="margin-top:6px"><a href="#">Monitor Advisor</a> · <a href="#">Bottleneck Checker</a></p>
+  </footer>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const cpuData = [
+  {name:"Ryzen 9 9950X3D",series:"Ryzen 9000",score:95.7},
+  {name:"Ryzen 9 9950X",series:"Ryzen 9000",score:76.9},
+  {name:"Ryzen 9 9900X3D",series:"Ryzen 9000",score:86.9},
+  {name:"Ryzen 9 9900X",series:"Ryzen 9000",score:73.9},
+  {name:"Ryzen 7 9850X3D",series:"Ryzen 9000",score:100},
+  {name:"Ryzen 7 9800X3D",series:"Ryzen 9000",score:97},
+  {name:"Ryzen 7 9700X",series:"Ryzen 9000",score:72.6},
+  {name:"Ryzen 7 9700F",series:"Ryzen 9000",score:72.5},
+  {name:"Ryzen 5 9600X",series:"Ryzen 9000",score:72.6},
+  {name:"Ryzen 5 9600",series:"Ryzen 9000",score:71.9},
+  {name:"Ryzen 5 9500F",series:"Ryzen 9000",score:71.7},
+  {name:"Ryzen 7 8700G",series:"Ryzen 8000",score:64.2},
+  {name:"Ryzen 7 8700F",series:"Ryzen 8000",score:63.1},
+  {name:"Ryzen 5 8600G",series:"Ryzen 8000",score:62},
+  {name:"Ryzen 5 8500G",series:"Ryzen 8000",score:57.5},
+  {name:"Ryzen 5 8400F",series:"Ryzen 8000",score:61.4},
+  {name:"Ryzen 5 8300G",series:"Ryzen 8000",score:54.3},
+  {name:"Ryzen 9 7950X3D",series:"Ryzen 7000",score:83.9},
+  {name:"Ryzen 9 7950X",series:"Ryzen 7000",score:71},
+  {name:"Ryzen 9 7900X3D",series:"Ryzen 7000",score:77.1},
+  {name:"Ryzen 9 7900X",series:"Ryzen 7000",score:69.2},
+  {name:"Ryzen 9 7900",series:"Ryzen 7000",score:67.1},
+  {name:"Ryzen 7 7800X3D",series:"Ryzen 7000",score:85.6},
+  {name:"Ryzen 7 7700X",series:"Ryzen 7000",score:70.6},
+  {name:"Ryzen 7 7700",series:"Ryzen 7000",score:68.8},
+  {name:"Ryzen 5 7600X3D",series:"Ryzen 7000",score:80.6},
+  {name:"Ryzen 5 7600X",series:"Ryzen 7000",score:67.3},
+  {name:"Ryzen 5 7600",series:"Ryzen 7000",score:65.5},
+  {name:"Ryzen 5 7500X3D",series:"Ryzen 7000",score:75.5},
+  {name:"Ryzen 5 7500F",series:"Ryzen 7000",score:64},
+  {name:"Ryzen 5 7400F",series:"Ryzen 7000",score:61.5},
+  {name:"Ryzen 5 7400",series:"Ryzen 7000",score:52},
+  {name:"Ryzen 9 5950X",series:"Ryzen 5000",score:63.1},
+  {name:"Ryzen 9 5900X",series:"Ryzen 5000",score:64},
+  {name:"Ryzen 9 5900",series:"Ryzen 5000",score:60.5},
+  {name:"Ryzen 7 5800X3D",series:"Ryzen 5000",score:75.7},
+  {name:"Ryzen 7 5800X",series:"Ryzen 5000",score:62.5},
+  {name:"Ryzen 7 5800",series:"Ryzen 5000",score:59},
+  {name:"Ryzen 7 5700X3D",series:"Ryzen 5000",score:72.1},
+  {name:"Ryzen 7 5700X",series:"Ryzen 5000",score:61.2},
+  {name:"Ryzen 5 5600X",series:"Ryzen 5000",score:62},
+  {name:"Ryzen 5 5600",series:"Ryzen 5000",score:61.5},
+  {name:"Ryzen 5 5500",series:"Ryzen 5000",score:53.5},
+  {name:"Core i9-14900KF",series:"Raptor Lake Refresh",score:78.2},
+  {name:"Core i9-14900K",series:"Raptor Lake Refresh",score:78.2},
+  {name:"Core i9-14900F",series:"Raptor Lake Refresh",score:74.5},
+  {name:"Core i9-14900",series:"Raptor Lake Refresh",score:74.5},
+  {name:"Core i7-14700KF",series:"Raptor Lake Refresh",score:76.4},
+  {name:"Core i7-14700K",series:"Raptor Lake Refresh",score:76.4},
+  {name:"Core i7-14700F",series:"Raptor Lake Refresh",score:72},
+  {name:"Core i7-14700",series:"Raptor Lake Refresh",score:72},
+  {name:"Core i5-14600KF",series:"Raptor Lake Refresh",score:72.8},
+  {name:"Core i5-14600K",series:"Raptor Lake Refresh",score:72.8},
+  {name:"Core i5-14500",series:"Raptor Lake Refresh",score:68.5},
+  {name:"Core i5-14400F",series:"Raptor Lake Refresh",score:59},
+  {name:"Core i5-14400",series:"Raptor Lake Refresh",score:58},
+  {name:"Core i3-14100",series:"Raptor Lake Refresh",score:56},
+  {name:"Core i3-14100F",series:"Raptor Lake Refresh",score:56},
+  {name:"Core i9-13900KF",series:"Raptor Lake",score:76.8},
+  {name:"Core i9-13900K",series:"Raptor Lake",score:76.8},
+  {name:"Core i9-13900F",series:"Raptor Lake",score:73},
+  {name:"Core i9-13900",series:"Raptor Lake",score:73},
+  {name:"Core i7-13700KF",series:"Raptor Lake",score:75.8},
+  {name:"Core i7-13700K",series:"Raptor Lake",score:75.8},
+  {name:"Core i7-13700F",series:"Raptor Lake",score:71},
+  {name:"Core i7-13700",series:"Raptor Lake",score:71},
+  {name:"Core i5-13600KF",series:"Raptor Lake",score:70.9},
+  {name:"Core i5-13600K",series:"Raptor Lake",score:70.9},
+  {name:"Core i5-13500",series:"Raptor Lake",score:66.5},
+  {name:"Core i5-13400F",series:"Raptor Lake",score:62},
+  {name:"Core i5-13400",series:"Raptor Lake",score:62},
+  {name:"Core i3-13100F",series:"Raptor Lake",score:55.5},
+  {name:"Core i3-13100",series:"Raptor Lake",score:55.5},
+  {name:"Core i9-12900KF",series:"Alder Lake",score:65},
+  {name:"Core i9-12900K",series:"Alder Lake",score:65},
+  {name:"Core i9-12900KS",series:"Alder Lake",score:67},
+  {name:"Core i9-12900",series:"Alder Lake",score:62},
+  {name:"Core i7-12700KF",series:"Alder Lake",score:65.8},
+  {name:"Core i7-12700K",series:"Alder Lake",score:65.8},
+  {name:"Core i7-12700F",series:"Alder Lake",score:63},
+  {name:"Core i7-12700",series:"Alder Lake",score:63},
+  {name:"Core i5-12600KF",series:"Alder Lake",score:60.8},
+  {name:"Core i5-12600K",series:"Alder Lake",score:60.8},
+  {name:"Core i5-12500",series:"Alder Lake",score:57.5},
+  {name:"Core i5-12400F",series:"Alder Lake",score:57},
+  {name:"Core i5-12400",series:"Alder Lake",score:57},
+  {name:"Core i3-12300",series:"Alder Lake",score:52.5},
+  {name:"Core i3-12100F",series:"Alder Lake",score:52.5},
+  {name:"Core i3-12100",series:"Alder Lake",score:52.5},
+  {name:"Core i9-11900KF",series:"Rocket Lake",score:62},
+  {name:"Core i9-11900K",series:"Rocket Lake",score:62},
+  {name:"Core i9-11900F",series:"Rocket Lake",score:59.5},
+  {name:"Core i9-11900",series:"Rocket Lake",score:59.5},
+  {name:"Core i7-11700KF",series:"Rocket Lake",score:60},
+  {name:"Core i7-11700K",series:"Rocket Lake",score:60},
+  {name:"Core i7-11700F",series:"Rocket Lake",score:57.5},
+  {name:"Core i7-11700",series:"Rocket Lake",score:57.5},
+  {name:"Core i5-11600KF",series:"Rocket Lake",score:57},
+  {name:"Core i5-11600K",series:"Rocket Lake",score:57},
+  {name:"Core i5-11500",series:"Rocket Lake",score:55},
+  {name:"Core i5-11400F",series:"Rocket Lake",score:53.5},
+  {name:"Core i5-11400",series:"Rocket Lake",score:53.5},
+  {name:"Core i3-11100",series:"Rocket Lake",score:49.5},
+  {name:"Core Ultra 9 285K",series:"Arrow Lake",score:71.8},
+  {name:"Core Ultra 9 285",series:"Arrow Lake",score:67.5},
+  {name:"Core Ultra 7 265KF",series:"Arrow Lake",score:70.3},
+  {name:"Core Ultra 7 265K",series:"Arrow Lake",score:70.3},
+  {name:"Core Ultra 7 265F",series:"Arrow Lake",score:67.5},
+  {name:"Core Ultra 7 265",series:"Arrow Lake",score:67.5},
+  {name:"Core Ultra 7 270KF Plus",series:"Arrow Lake Refresh",score:77.5},
+  {name:"Core Ultra 7 270K Plus",series:"Arrow Lake Refresh",score:77.5},
+  {name:"Core Ultra 7 270F Plus",series:"Arrow Lake Refresh",score:73.5},
+  {name:"Core Ultra 7 270 Plus",series:"Arrow Lake Refresh",score:73.5},
+  {name:"Core Ultra 5 245KF",series:"Arrow Lake",score:67.1},
+  {name:"Core Ultra 5 245K",series:"Arrow Lake",score:67.1},
+  {name:"Core Ultra 5 245F",series:"Arrow Lake",score:64},
+  {name:"Core Ultra 5 245",series:"Arrow Lake",score:64},
+  {name:"Core Ultra 5 235F",series:"Arrow Lake",score:63},
+  {name:"Core Ultra 5 235",series:"Arrow Lake",score:63},
+  {name:"Core Ultra 5 225F",series:"Arrow Lake",score:62},
+  {name:"Core Ultra 5 225",series:"Arrow Lake",score:62.5},
+  {name:"Core Ultra 5 250KF Plus",series:"Arrow Lake Refresh",score:73.3},
+  {name:"Core Ultra 5 250K Plus",series:"Arrow Lake Refresh",score:73.3},
+  {name:"Core Ultra 5 250F Plus",series:"Arrow Lake Refresh",score:69.5},
+  {name:"Core Ultra 5 250 Plus",series:"Arrow Lake Refresh",score:69.5},
+];
+
+const gpuData = [
+  {name:"RTX 5090",series:"RTX 5000",score:100},
+  {name:"RTX 4090",series:"RTX 4000",score:88.6},
+  {name:"RTX 5080",series:"RTX 5000",score:78.1},
+  {name:"RTX 4080 SUPER",series:"RTX 4000",score:74},
+  {name:"RTX 4080",series:"RTX 4000",score:72.5},
+  {name:"RTX 5070 TI",series:"RTX 5000",score:70.8},
+  {name:"RTX 4070 TI SUPER",series:"RTX 4000",score:64.3},
+  {name:"RTX 4070 TI",series:"RTX 4000",score:59.8},
+  {name:"RTX 3090 TI",series:"RTX 3000",score:57},
+  {name:"RTX 5070",series:"RTX 5000",score:56.8},
+  {name:"RTX 4070 SUPER",series:"RTX 4000",score:55.8},
+  {name:"RTX 3090",series:"RTX 3000",score:55.7},
+  {name:"RTX 3080 TI",series:"RTX 3000",score:53},
+  {name:"RTX 4070",series:"RTX 4000",score:47.8},
+  {name:"RTX 3080",series:"RTX 3000",score:47.5},
+  {name:"RTX 5060 TI 16GB",series:"RTX 5000",score:43.6},
+  {name:"RTX 5060 TI 8GB",series:"RTX 5000",score:39.2},
+  {name:"RTX 3070 TI",series:"RTX 3000",score:38.1},
+  {name:"RTX 3070",series:"RTX 3000",score:37.4},
+  {name:"RTX 4060 TI 16GB",series:"RTX 4000",score:36.7},
+  {name:"RTX 4060 TI 8GB",series:"RTX 4000",score:34.5},
+  {name:"RTX 5060",series:"RTX 5000",score:31.9},
+  {name:"RTX 3060 TI",series:"RTX 3000",score:29.4},
+  {name:"RTX 4060",series:"RTX 4000",score:27.2},
+  {name:"RTX 3060 12GB",series:"RTX 3000",score:24.4},
+  {name:"RTX 3060 8GB",series:"RTX 3000",score:21.5},
+  {name:"RX 7900 XTX",series:"Radeon 7000",score:71.8},
+  {name:"RX 9070 XT",series:"Radeon 9000",score:68.7},
+  {name:"RX 7900 XT",series:"Radeon 7000",score:64.4},
+  {name:"RX 9070",series:"Radeon 9000",score:60.7},
+  {name:"RX 7900 GRE",series:"Radeon 7000",score:54.2},
+  {name:"RX 6950 XT",series:"Radeon 6000",score:53},
+  {name:"RX 6900 XT",series:"Radeon 6000",score:49.1},
+  {name:"RX 7800 XT",series:"Radeon 7000",score:48.3},
+  {name:"RX 6800 XT",series:"Radeon 6000",score:48},
+  {name:"RX 9060 XT 16GB",series:"Radeon 9000",score:41.5},
+  {name:"RX 9060 XT 8GB",series:"Radeon 9000",score:30.5},
+  {name:"RX 9060",series:"Radeon 9000",score:28.5},
+  {name:"RX 7700 XT",series:"Radeon 7000",score:42.4},
+  {name:"RX 6800",series:"Radeon 6000",score:39.8},
+  {name:"RX 7700",series:"Radeon 7000",score:34.8},
+  {name:"RX 6750 XT",series:"Radeon 6000",score:30.9},
+  {name:"RX 6700 XT",series:"Radeon 6000",score:30.1},
+  {name:"RX 7600 XT",series:"Radeon 7000",score:29.2},
+  {name:"RX 6700",series:"Radeon 6000",score:27.9},
+  {name:"RX 7600",series:"Radeon 7000",score:22.5},
+  {name:"RX 6650 XT",series:"Radeon 6000",score:21.6},
+  {name:"RX 6600 XT",series:"Radeon 6000",score:19.2},
+  {name:"RX 6600",series:"Radeon 6000",score:16.9},
+];
+const cpuScores = cpuData.map(c => c.score);
+const gpuScores = gpuData.map(g => g.score);
+
+function rankPercentile(item, data) {
+  const sorted = [...data].sort((a, b) => b.score - a.score);
+  const idx = sorted.findIndex(d => d.name === item.name);
+  return ((data.length - 1 - idx) / (data.length - 1)) * 100;
+}
+
+function getUniqueSeries(data) {
+  return [...new Set(data.map(d => d.series))];
+}
+
+function init() {
+  const cpuSeriesSel = document.getElementById('cpu-series');
+  const gpuSeriesSel = document.getElementById('gpu-series');
+
+  getUniqueSeries(cpuData).forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    cpuSeriesSel.appendChild(opt);
+  });
+
+  getUniqueSeries(gpuData).forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    gpuSeriesSel.appendChild(opt);
+  });
+}
+
+function populateCPU() {
+  const series = document.getElementById('cpu-series').value;
+  const sel = document.getElementById('cpu-model');
+  sel.innerHTML = '<option value="">— Select Model —</option>';
+  sel.disabled = !series;
+
+  if (series) {
+    cpuData.filter(c => c.series === series).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  resetScore('cpu');
+  updateCheckBtn();
+}
+
+function populateGPU() {
+  const series = document.getElementById('gpu-series').value;
+  const sel = document.getElementById('gpu-model');
+  sel.innerHTML = '<option value="">— Select Model —</option>';
+  sel.disabled = !series;
+
+  if (series) {
+    gpuData.filter(g => g.series === series).forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.name;
+      opt.textContent = g.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  resetScore('gpu');
+  updateCheckBtn();
+}
+
+function resetScore(type) {
+  const el = document.getElementById(`${type}-score-val`);
+  el.textContent = `Select ${type.toUpperCase()}`;
+  el.className = `score-value ${type === 'gpu' ? 'gpu-score ' : ''}placeholder`;
+}
+
+function updateScores() {
+  const cpuName = document.getElementById('cpu-model').value;
+  const gpuName = document.getElementById('gpu-model').value;
+
+  if (cpuName) {
+    const cpu = cpuData.find(c => c.name === cpuName);
+    const el = document.getElementById('cpu-score-val');
+    el.textContent = cpu.score + '%';
+    el.className = 'score-value';
+  }
+
+  if (gpuName) {
+    const gpu = gpuData.find(g => g.name === gpuName);
+    const el = document.getElementById('gpu-score-val');
+    el.textContent = gpu.score + '%';
+    el.className = 'score-value gpu-score';
+  }
+
+  updateCheckBtn();
+}
+
+function updateCheckBtn() {
+  const cpuReady = !!document.getElementById('cpu-model').value;
+  const gpuReady = !!document.getElementById('gpu-model').value;
+  document.getElementById('check-btn').disabled = !(cpuReady && gpuReady);
+}
+
+// ── BOTTLENECK LOGIC ──────────────────────────────────────────
+function runCheck() {
+  const cpuName = document.getElementById('cpu-model').value;
+  const gpuName = document.getElementById('gpu-model').value;
+
+  const cpu = cpuData.find(c => c.name === cpuName);
+  const gpu = gpuData.find(g => g.name === gpuName);
+
+  const cpuScore = cpu.score;
+  const gpuScore = gpu.score;
+  const cpuTier = rankPercentile(cpu, cpuData);
+  const gpuTier = rankPercentile(gpu, gpuData);;
+  const diff = Math.abs(cpuTier - gpuTier);
+  const bottleneckPct = diff.toFixed(1);
+  const ratio = (cpuScore / gpuScore).toFixed(2); // leave this on raw scores, it's just a display stat
+
+  let type, verdictClass, verdictText, adviceText, gaugeColor;
+
+  if (diff <= 5) {
+    type = 'balanced';
+    verdictClass = 'balanced';
+    verdictText = '✓ Well Balanced';
+    gaugeColor = 'var(--green)';
+    adviceText = `Your <strong>${cpu.name}</strong> and <strong>${gpu.name}</strong> are extremely well matched — neither component is holding the other back. This is an ideal pairing. Expect excellent gaming performance with no wasted hardware potential.`;
+  } else if (cpuTier < gpuTier) {
+    if (parseFloat(bottleneckPct) >= 30) {
+      type = 'severe-cpu';
+      verdictClass = 'severe';
+      verdictText = '⚠ Severe CPU Bottleneck';
+      gaugeColor = 'var(--red)';
+      adviceText = `Your <strong>${gpu.name}</strong> is significantly more powerful than your <strong>${cpu.name}</strong> can handle. The GPU will be starved of work — especially in CPU-intensive games like open world titles, strategy games, and anything with heavy AI. Consider upgrading your CPU to unlock your GPU's full potential.`;
+    } else {
+      type = 'cpu';
+      verdictClass = 'cpu-bottleneck';
+      verdictText = '⚡ CPU Bottleneck';
+      gaugeColor = 'var(--yellow)';
+      adviceText = `Your <strong>${gpu.name}</strong> is noticeably faster than your <strong>${cpu.name}</strong>. The CPU will limit performance in CPU-heavy scenarios and at lower resolutions (1080p). At 1440p or 4K, this gap matters less. Upgrading the CPU would bring a meaningful improvement in games like Cyberpunk 2077, Fortnite, and open world titles.`;
+    }
+  } else {
+    if (parseFloat(bottleneckPct) >= 30) {
+      type = 'severe-gpu';
+      verdictClass = 'severe';
+      verdictText = '⚠ Severe GPU Bottleneck';
+      gaugeColor = 'var(--red)';
+      adviceText = `Your <strong>${cpu.name}</strong> is far more capable than your <strong>${gpu.name}</strong>. The GPU is the hard ceiling here — frame rates will be limited in almost all games. Your CPU power is being wasted. Upgrading the GPU will make a dramatic difference in gaming performance.`;
+    } else {
+      type = 'gpu';
+      verdictClass = 'gpu-bottleneck';
+      verdictText = '📺 GPU Bottleneck';
+      gaugeColor = 'var(--accent)';
+      adviceText = `Your <strong>${cpu.name}</strong> has more headroom than your <strong>${gpu.name}</strong> can utilise. This is a common and actually reasonable situation for gaming — the GPU is always the target for upgrades. At higher resolutions (1440p / 4K) this bottleneck becomes more pronounced. Upgrading the GPU is the best next step.`;
+    }
+  }
+
+  // Update result card
+  const card = document.getElementById('result-card');
+  card.style.setProperty('--result-color', gaugeColor);
+
+  document.getElementById('verdict-badge').className = `verdict-badge ${verdictClass}`;
+  document.getElementById('verdict-badge').innerHTML = `<span class="verdict-dot"></span>${verdictText}`;
+
+  document.getElementById('bottleneck-pct').textContent = bottleneckPct + '%';
+  document.getElementById('bottleneck-pct').style.color = gaugeColor;
+
+  document.getElementById('stat-cpu-score').textContent = cpuScore + '%';
+  document.getElementById('stat-gpu-score').textContent = gpuScore + '%';
+  document.getElementById('stat-ratio').textContent = ratio + 'x';
+
+  document.getElementById('bar-cpu-name').textContent = cpu.name;
+  document.getElementById('bar-gpu-name').textContent = gpu.name;
+  document.getElementById('bar-cpu-score').textContent = cpuScore + '%';
+  document.getElementById('bar-gpu-score').textContent = gpuScore + '%';
+
+  document.getElementById('advice-text').innerHTML = adviceText;
+
+  card.classList.add('visible');
+
+  // Animate bars after next frame
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.getElementById('bar-cpu').style.width = cpuScore + '%';
+      document.getElementById('bar-gpu').style.width = gpuScore + '%';
+
+      const gaugeFill = document.getElementById('gauge-fill');
+      gaugeFill.style.background = gaugeColor;
+      gaugeFill.style.color = gaugeColor;
+      gaugeFill.style.boxShadow = `0 0 12px ${gaugeColor}`;
+      gaugeFill.style.width = Math.min(parseFloat(bottleneckPct) * 2, 100) + '%';
+    }, 50);
+  });
+
+  // Scroll into view
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+init();
+</script>
+</body>
+</html>
