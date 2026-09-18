@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCRigCheck — Know your rig before you build it</title>
+<meta name="description" content="Free tools to spot bottlenecks and pick the right monitor for your PC build, before you spend a penny.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0D10;
+    --panel: #11151A;
+    --panel-2: #161B21;
+    --line: #232A32;
+    --line-bright: #33404A;
+    --text: #E9EEF1;
+    --text-dim: #8B98A3;
+    --text-faint: #5B6871;
+    --cyan: #45E0D0;
+    --cyan-dim: #2A8A80;
+    --amber: #FF8A4C;
+    --amber-dim: #B85E30;
+    --radius: 3px;
+    --maxw: 1120px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3 { font-family: "Space Grotesk", "IBM Plex Sans", sans-serif; font-weight: 600; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; }
+  .mono { font-family: "IBM Plex Mono", monospace; }
+
+  /* subtle circuit-grid background */
+  .grid-bg{
+    position: fixed; inset: 0; z-index: -1;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    opacity: 0.28;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  .wrap{ max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV ---------- */
+  header{
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(10,13,16,0.86);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav{ display:flex; align-items:center; justify-content:space-between; padding: 18px 0; }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:"Space Grotesk"; font-weight:700; font-size: 1.15rem; letter-spacing: -0.01em; text-decoration:none; }
+  .brand-mark{
+    width: 26px; height: 26px; border: 1.5px solid var(--cyan); border-radius: 6px;
+    display:flex; align-items:center; justify-content:center; position: relative;
+  }
+  .brand-mark::before{
+    content:""; width: 8px; height: 8px; background: var(--cyan); border-radius: 1px;
+    box-shadow: 0 0 8px var(--cyan);
+  }
+  nav ul{ list-style:none; display:flex; gap: 32px; margin:0; padding:0; }
+  nav a.navlink{ text-decoration:none; color: var(--text-dim); font-size: 0.94rem; transition: color .15s ease; }
+  nav a.navlink:hover{ color: var(--text); }
+  .nav-cta{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 8px 16px; border: 1px solid var(--line-bright); border-radius: var(--radius);
+    text-decoration:none; font-size: 0.88rem; color: var(--text); font-family:"IBM Plex Mono";
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .nav-cta:hover{ border-color: var(--cyan-dim); background: rgba(69,224,208,0.06); }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding: 88px 0 64px; }
+  .hero-grid{ display:grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; }
+  .eyebrow{
+    color: var(--cyan); font-family:"IBM Plex Mono"; font-size: 0.82rem;
+    display:flex; align-items:center; gap: 9px; margin-bottom: 22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 2.2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+  h1.headline{ font-size: clamp(2.3rem, 4.2vw, 3.4rem); line-height: 1.08; letter-spacing: -0.015em; max-width: 12ch; }
+  h1.headline .accent{ color: var(--cyan); }
+
+  .sub{ color: var(--text-dim); font-size: 1.08rem; max-width: 46ch; margin-top: 22px; }
+
+  .hero-ctas{ display:flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn{
+    padding: 13px 22px; border-radius: var(--radius); text-decoration:none;
+    font-size: 0.95rem; font-weight: 500; font-family:"IBM Plex Sans"; display:inline-flex; align-items:center; gap:8px;
+    transition: transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn-primary{ background: var(--cyan); color: #06181A; }
+  .btn-primary:hover{ box-shadow: 0 0 0 1px var(--cyan), 0 0 24px rgba(69,224,208,0.35); transform: translateY(-1px); }
+  .btn-ghost{ border: 1px solid var(--line-bright); color: var(--text); }
+  .btn-ghost:hover{ border-color: var(--text-dim); }
+
+  .stat-row{ display:flex; gap: 34px; margin-top: 44px; }
+  .stat .num{ font-family:"IBM Plex Mono"; font-size: 1.5rem; color: var(--text); }
+  .stat .label{ font-size: 0.8rem; color: var(--text-faint); margin-top: 4px; }
+
+  /* --- diagnostic visual --- */
+  .scan-panel{
+    background: linear-gradient(180deg, var(--panel), var(--bg));
+    border: 1px solid var(--line); border-radius: 8px; padding: 26px;
+    position: relative; overflow: hidden;
+  }
+  .scan-panel-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px; }
+  .scan-title{ font-family:"IBM Plex Mono"; font-size: 0.78rem; color: var(--text-faint); text-transform: lowercase; }
+  .scan-status{ font-family:"IBM Plex Mono"; font-size: 0.78rem; color: var(--cyan); }
+
+  .rig-diagram{ width: 100%; height: auto; display:block; }
+
+  .readout{ margin-top: 18px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .readout-row{ display:flex; justify-content:space-between; font-family:"IBM Plex Mono"; font-size: 0.82rem; padding: 5px 0; color: var(--text-dim); }
+  .readout-row span:last-child{ color: var(--text); }
+  .readout-row.warn span:last-child{ color: var(--amber); }
+
+  /* ---------- SECTION HEADINGS ---------- */
+  .section{ padding: 84px 0; border-top: 1px solid var(--line); }
+  .section-head{ max-width: 640px; margin-bottom: 52px; }
+  .section-head h2{ font-size: clamp(1.6rem, 2.6vw, 2.1rem); letter-spacing: -0.01em; }
+  .section-head p{ color: var(--text-dim); margin-top: 14px; font-size: 1.02rem; }
+
+  /* ---------- TOOLS ---------- */
+  .tools{ display:grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .tool-card{
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 30px; display:flex; flex-direction: column; height: 100%;
+    transition: border-color .15s ease;
+  }
+  .tool-card:hover{ border-color: var(--line-bright); }
+  .tool-tag{ font-family:"IBM Plex Mono"; font-size: 0.74rem; color: var(--text-faint); letter-spacing: 0.02em; }
+  .tool-card h3{ font-size: 1.35rem; margin-top: 10px; }
+  .tool-card .desc{ color: var(--text-dim); margin-top: 12px; font-size: 0.97rem; flex-grow: 1; }
+  .tool-visual{ height: 84px; margin: 20px 0 4px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); position: relative; overflow: hidden; }
+  .tool-link{
+    margin-top: 20px; display:inline-flex; align-items:center; gap: 8px; text-decoration:none;
+    font-family:"IBM Plex Mono"; font-size: 0.88rem; color: var(--cyan);
+    padding-top: 16px; border-top: 1px solid var(--line);
+  }
+  .tool-link:hover{ color: #7CEDE0; }
+
+  /* bottleneck mini-viz: two bars racing */
+  .bb-viz{ display:flex; align-items:flex-end; gap: 10px; height: 100%; padding: 14px 18px; }
+  .bb-bar{ flex:1; background: linear-gradient(180deg, var(--cyan-dim), transparent); border-radius: 2px 2px 0 0; position: relative; }
+  .bb-bar.tall{ height: 78%; background: linear-gradient(180deg, var(--cyan), var(--cyan-dim)); }
+  .bb-bar.short{ height: 48%; background: linear-gradient(180deg, var(--amber), var(--amber-dim)); }
+  .bb-gap{ position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-family:"IBM Plex Mono"; font-size:0.68rem; color: var(--amber); white-space:nowrap; }
+
+  /* monitor mini-viz: nested rectangles */
+  .mv-viz{ display:flex; align-items:center; justify-content:center; height:100%; gap: 14px; }
+  .mv-screen{ border: 1.5px solid var(--line-bright); border-radius: 3px; position:relative; }
+  .mv-screen.a{ width: 68px; height: 40px; }
+  .mv-screen.b{ width: 48px; height: 28px; border-color: var(--cyan-dim); }
+  .mv-screen.c{ width: 32px; height: 19px; border-color: var(--cyan); box-shadow: 0 0 10px rgba(69,224,208,0.25); }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .steps{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .step{ border-left: 1px solid var(--line); padding-left: 22px; }
+  .step .idx{ font-family:"IBM Plex Mono"; color: var(--cyan); font-size: 0.82rem; }
+  .step h3{ font-size: 1.08rem; margin-top: 10px; font-weight: 500; }
+  .step p{ color: var(--text-dim); font-size: 0.93rem; margin-top: 8px; }
+
+  /* ---------- ABOUT / TRUST STRIP ---------- */
+  .about{ display:grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+  .about p{ color: var(--text-dim); font-size: 1.02rem; }
+  .about p + p{ margin-top: 14px; }
+  .about-panel{
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 26px;
+  }
+  .about-panel .row{ display:flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+  .about-panel .row:last-child{ border-bottom: none; }
+  .about-panel .row span:first-child{ color: var(--text-faint); }
+  .about-panel .row span:last-child{ font-family:"IBM Plex Mono"; font-size: 0.86rem; }
+
+  /* ---------- FOOTER ---------- */
+  footer{ border-top: 1px solid var(--line); padding: 40px 0; }
+  .footer-row{ display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 16px; }
+  .footer-row .brand{ font-size: 1rem; }
+  .footer-links{ display:flex; gap: 26px; list-style:none; padding:0; margin:0; }
+  .footer-links a{ text-decoration:none; color: var(--text-dim); font-size: 0.88rem; }
+  .footer-links a:hover{ color: var(--text); }
+  .footer-note{ color: var(--text-faint); font-size: 0.82rem; margin-top: 18px; }
+
+  @media (max-width: 860px){
+    .hero-grid, .tools, .steps, .about{ grid-template-columns: 1fr; }
+    .steps{ gap: 28px; }
+    .stat-row{ gap: 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .eyebrow .dot{ animation: none; }
+    * { scroll-behavior: auto !important; }
+  }
+
+  :focus-visible{ outline: 2px solid var(--cyan); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="#top" class="brand"><span class="brand-mark"></span>PCRigCheck</a>
+      <ul>
+        <li><a class="navlink" href="#tools">Tools</a></li>
+        <li><a class="navlink" href="#how">How it works</a></li>
+        <li><a class="navlink" href="#about">About</a></li>
+      </ul>
+      <a class="nav-cta" href="#tools">Run a check →</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span>2 tools live — free, no signup</div>
+        <h1 class="headline">Know your rig <span class="accent">before</span> you build it.</h1>
+        <p class="sub">Free diagnostic tools for PC builders. Check whether your CPU and GPU actually match, and find the monitor that won't waste either of them.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="bottleneck-checker.html">Check for bottlenecks</a>
+          <a class="btn btn-ghost" href="monitor-advisor.html">Find my monitor</a>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="num">125</div><div class="label">CPUs benchmarked</div></div>
+          <div class="stat"><div class="num">47</div><div class="label">GPUs benchmarked</div></div>
+          <div class="stat"><div class="num">£0</div><div class="label">cost to use</div></div>
+        </div>
+      </div>
+
+      <div class="scan-panel">
+        <div class="scan-panel-head">
+          <span class="scan-title">rig_scan.log</span>
+          <span class="scan-status">● analysing</span>
+        </div>
+        <svg class="rig-diagram" viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#45E0D0" stop-opacity="0"/>
+              <stop offset="50%" stop-color="#45E0D0" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#45E0D0" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- CPU node -->
+          <rect x="26" y="58" width="60" height="44" rx="4" fill="none" stroke="#33404A" stroke-width="1.5"/>
+          <text x="56" y="115" text-anchor="middle" fill="#8B98A3" font-family="IBM Plex Mono" font-size="10">CPU</text>
+          <!-- GPU node -->
+          <rect x="314" y="50" width="60" height="60" rx="4" fill="none" stroke="#45E0D0" stroke-width="1.5"/>
+          <text x="344" y="123" text-anchor="middle" fill="#45E0D0" font-family="IBM Plex Mono" font-size="10">GPU</text>
+          <!-- connecting line -->
+          <line x1="86" y1="80" x2="314" y2="80" stroke="#232A32" stroke-width="1.5"/>
+          <rect x="86" y="76" width="40" height="8" fill="url(#beam)">
+            <animate attributeName="x" from="86" to="274" dur="2.6s" repeatCount="indefinite"/>
+          </rect>
+          <!-- score readout -->
+          <text x="200" y="30" text-anchor="middle" fill="#E9EEF1" font-family="IBM Plex Mono" font-size="13" font-weight="500">GPU limited · 14%</text>
+          <line x1="150" y1="80" x2="150" y2="140" stroke="#232A32" stroke-width="1"/>
+          <line x1="250" y1="80" x2="250" y2="140" stroke="#232A32" stroke-width="1"/>
+        </svg>
+        <div class="readout">
+          <div class="readout-row"><span>pairing</span><span>Ryzen 5 7600 + RTX 4070</span></div>
+          <div class="readout-row"><span>resolution</span><span>1440p</span></div>
+          <div class="readout-row warn"><span>bottleneck</span><span>GPU · 14%</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="section" id="tools">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Two checks, before you spend anything</h2>
+        <p>Run these before you buy a part or set a resolution — not after, when the return window's closed.</p>
+      </div>
+
+      <div class="tools">
+        <div class="tool-card">
+          <span class="tool-tag">tool 01 · pairing analysis</span>
+          <h3>Bottleneck Checker</h3>
+          <p class="desc">Pick any CPU and GPU pairing and see which one is holding the other back, and by how much — scored against real benchmark data, not a guess.</p>
+          <div class="tool-visual">
+            <div class="bb-viz">
+              <div class="bb-bar tall"></div>
+              <div class="bb-bar short"><span class="bb-gap">−14%</span></div>
+            </div>
+          </div>
+          <a class="tool-link" href="bottleneck-checker.html">Run the checker →</a>
+        </div>
+
+        <div class="tool-card">
+          <span class="tool-tag">tool 02 · viewing setup</span>
+          <h3>Monitor Advisor</h3>
+          <p class="desc">Tell it your screen size and how far you sit from it, and it'll tell you the resolution that actually makes sense — going higher just burns performance you can't see.</p>
+          <div class="tool-visual">
+            <div class="mv-viz">
+              <div class="mv-screen a"></div>
+              <div class="mv-screen b"></div>
+              <div class="mv-screen c"></div>
+            </div>
+          </div>
+          <a class="tool-link" href="monitor-advisor.html">Find my resolution →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>How the numbers work</h2>
+        <p>No affiliate ranking or vendor bias — the scoring only cares about the hardware.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="idx">01</span>
+          <h3>Pick your parts</h3>
+          <p>Choose a CPU and GPU (or your GPU and a target resolution) from the dropdowns — no account, no install.</p>
+        </div>
+        <div class="step">
+          <span class="idx">02</span>
+          <h3>We normalise the benchmarks</h3>
+          <p>Every part is scored against the dataset using z-score normalisation, so a budget CPU and a flagship GPU are compared fairly.</p>
+        </div>
+        <div class="step">
+          <span class="idx">03</span>
+          <h3>Get a straight answer</h3>
+          <p>A single verdict — which part is the limiter, and roughly how much performance you're leaving on the table.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="wrap about">
+      <div>
+        <h2 style="font-size: clamp(1.6rem, 2.6vw, 2.1rem); letter-spacing: -0.01em; margin-bottom: 18px;">Built by someone who kept getting this wrong</h2>
+        <p>PCRigCheck started as a way to stop guessing whether a part upgrade was actually worth it. The bottleneck checker exists because most online calculators use flawed benchmark methodology — this one doesn't.</p>
+        <p>More tools and component write-ups are on the way as the dataset grows.</p>
+      </div>
+      <div class="about-panel">
+        <div class="row"><span>dataset</span><span>125 CPUs · 47 GPUs</span></div>
+        <div class="row"><span>scoring method</span><span>z-score normalised</span></div>
+        <div class="row"><span>cost</span><span>free, always</span></div>
+        <div class="row"><span>status</span><span style="color:#45E0D0;">active development</span></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <a href="#top" class="brand"><span class="brand-mark"></span>PCRigCheck</a>
+      <ul class="footer-links">
+        <li><a href="bottleneck-checker.html">Bottleneck Checker</a></li>
+        <li><a href="monitor-advisor.html">Monitor Advisor</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+    </div>
+    <p class="footer-note">pcrigcheck.com — independent hardware tools. Not affiliated with any manufacturer.</p>
+  </div>
+</footer>
+
+</body>
+</html>
