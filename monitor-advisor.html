@@ -3,47 +3,145 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitor Advisor</title>
+  <title>Monitor Advisor | PCRigCheck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    :root{
+      --bg: #0A0D10;
+      --panel: #11151A;
+      --panel-2: #161B21;
+      --line: #232A32;
+      --line-bright: #33404A;
+      --text: #E9EEF1;
+      --text-dim: #8B98A3;
+      --text-faint: #5B6871;
+      --cyan: #45E0D0;
+      --cyan-dim: #2A8A80;
+      --amber: #FF8A4C;
+      --radius: 3px;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, sans-serif;
-      background: #0f0f0f;
-      color: #e0e0e0;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
+      padding: 1.5rem 1.5rem 3rem;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.55;
     }
 
+    .grid-bg{
+      position: fixed; inset: 0; z-index: -1;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 64px 64px;
+      opacity: 0.28;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+    }
+
+    .page {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ---------- top nav ---------- */
+    .topnav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border: 1px solid var(--line-bright);
+      border-radius: var(--radius);
+      color: var(--text);
+      text-decoration: none;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.85rem;
+      transition: border-color .15s ease, background .15s ease;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--cyan-dim);
+      background: rgba(69,224,208,0.06);
+    }
+
+    .nav-btn.home .mark {
+      width: 14px; height: 14px;
+      border: 1.5px solid var(--cyan);
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn.home .mark::before {
+      content: "";
+      width: 4px; height: 4px;
+      background: var(--cyan);
+      border-radius: 1px;
+      box-shadow: 0 0 6px var(--cyan);
+    }
+
+    /* ---------- card ---------- */
     .card {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 12px;
+      background: linear-gradient(180deg, var(--panel), var(--bg));
+      border: 1px solid var(--line);
+      border-radius: 8px;
       padding: 2rem;
       width: 100%;
-      max-width: 680px;
+    }
+
+    .tool-tag {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.74rem;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tool-tag .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
     }
 
     h1 {
+      font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
       font-size: 2rem;
       font-weight: 600;
-      margin-bottom: 0.3rem;
-      color: #ffffff;
+      letter-spacing: -0.015em;
+      margin-bottom: 0.6rem;
+      color: var(--text);
     }
 
     .subtitle {
-      font-size: 0.85rem;
-      color: #aaa;
-      margin-bottom: 1.5rem;
+      font-size: 0.92rem;
+      color: var(--text-dim);
+      margin-bottom: 1.6rem;
     }
 
     .mode-toggle {
       display: flex;
-      background: #111;
-      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
       padding: 4px;
       margin-bottom: 1.5rem;
       gap: 4px;
@@ -51,20 +149,23 @@
 
     .mode-btn {
       flex: 1;
-      padding: 0.5rem;
+      padding: 0.55rem;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
+      font-family: "IBM Plex Mono", monospace;
       font-size: 0.8rem;
       cursor: pointer;
       background: transparent;
-      color: #888;
+      color: var(--text-dim);
       transition: all 0.2s;
     }
 
+    .mode-btn:hover { color: var(--text); }
+
     .mode-btn.active {
-      background: #76b900;
-      color: #000;
-      font-weight: 600;
+      background: var(--cyan);
+      color: #06181A;
+      font-weight: 500;
     }
 
     .field {
@@ -74,151 +175,194 @@
     label {
       display: block;
       font-size: 0.8rem;
-      color: #aaa;
+      color: var(--text-dim);
       margin-bottom: 0.4rem;
     }
 
     input, select {
       width: 100%;
-      padding: 0.6rem 0.8rem;
-      background: #111;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      color: #e0e0e0;
+      padding: 0.65rem 0.8rem;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
       font-size: 0.95rem;
       outline: none;
-      transition: border 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input::placeholder { color: var(--text-faint); }
+
+    select option, select optgroup {
+      background: var(--panel);
+      color: var(--text);
     }
 
     input:focus, select:focus {
-      border-color: #76b900;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(69,224,208,0.12);
     }
 
     button.calculate {
       width: 100%;
-      padding: 0.75rem;
-      background: #76b900;
-      color: #000;
-      font-weight: 600;
+      padding: 0.8rem;
+      background: var(--cyan);
+      color: #06181A;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      font-weight: 500;
       font-size: 0.95rem;
       border: none;
-      border-radius: 8px;
+      border-radius: var(--radius);
       cursor: pointer;
       margin-top: 0.5rem;
-      transition: opacity 0.2s;
+      transition: transform .12s ease, box-shadow .15s ease;
     }
 
-    button.calculate:hover { opacity: 0.85; }
+    button.calculate:hover {
+      box-shadow: 0 0 0 1px var(--cyan), 0 0 24px rgba(69,224,208,0.35);
+      transform: translateY(-1px);
+    }
 
+    /* ---------- results ---------- */
     .results {
       margin-top: 1.5rem;
       display: none;
       flex-direction: column;
       gap: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 1.5rem;
     }
 
     .result-box {
-      background: #111;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
       padding: 1rem 1.2rem;
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
     }
 
     .result-label {
-      font-size: 0.8rem;
-      color: #888;
+      font-size: 0.82rem;
+      color: var(--text-dim);
     }
 
     .result-value {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #76b900;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--cyan);
       line-height: 1.4;
     }
 
-    .result-note {
+    .result-sub {
       font-size: 0.75rem;
-      color: #555;
-      margin-top: 0.8rem;
-      line-height: 1.5;
+      color: var(--text-faint);
+    }
+
+    .result-note {
+      font-size: 0.78rem;
+      color: var(--text-faint);
+      margin-top: 0.6rem;
+      line-height: 1.55;
     }
 
     .error {
-      color: #ff5555;
+      color: var(--amber);
+      font-family: "IBM Plex Mono", monospace;
       font-size: 0.8rem;
-      margin-top: 0.5rem;
+      margin-top: 0.7rem;
       display: none;
+    }
+
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    @media (max-width: 520px) {
+      .card { padding: 1.4rem; }
+      .result-box { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .result-box > div { text-align: left !important; }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Monitor Advisor</h1>
-    <p class="subtitle">Nobody wants to see pixels on their screen — unless you're into retro, fair enough. To make sure you don't see them, enter your monitor size and resolution to find your ideal viewing distance, or enter your screen size and how far you sit to find out what resolution you actually need</p>
+  <div class="grid-bg"></div>
 
-    <div class="mode-toggle">
-      <button class="mode-btn active" onclick="switchMode('distance')">Find viewing distance</button>
-      <button class="mode-btn" onclick="switchMode('resolution')">Find resolution</button>
-    </div>
+  <div class="page">
+    <nav class="topnav">
+      <a class="nav-btn home" href="index.html"><span class="mark"></span>← PCRigCheck.com</a>
+      <a class="nav-btn" href="bottleneck-checker.html">Bottleneck Checker →</a>
+    </nav>
 
-    <!-- MODE 1: find ideal viewing distance -->
-    <div id="mode-distance">
-      <div class="field">
-        <label>Screen size (inches, diagonal)</label>
-        <input type="number" id="d-size" placeholder="e.g. 27" min="1">
+    <div class="card">
+      <div class="tool-tag"><span class="dot"></span>tool 02 · viewing setup</div>
+      <h1>Monitor Advisor</h1>
+      <p class="subtitle">Unless you’re chasing a retro look, pixels belong out of sight. <br> Use this tool to calculate the ideal viewing distance for your monitor based on its size and resolution — or find out what resolution you actually need based on your screen size and how far away you sit.</p>
+
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="switchMode('distance')">Find viewing distance</button>
+        <button class="mode-btn" onclick="switchMode('resolution')">Find resolution</button>
       </div>
-      <div class="field">
-        <label>Resolution</label>
-        <select id="d-res">
-          <optgroup label="Windows / Standard:">
-            <option value="1920x1080">1080p — 1920×1080</option>
-            <option value="2560x1440">1440p — 2560×1440</option>
-            <option value="3840x2160">4K — 3840×2160</option>
-            <option value="2560x1080">Ultrawide 1080p — 2560×1080</option>
-            <option value="3440x1440">Ultrawide 1440p — 3440×1440</option>
-            <option value="3840x1600">4K Ultrawide standard (3840×1600)</option>
-            <option value="5120x2160">4K Ultrawide true (5120×2160)</option>
-            <option value="7680x2160">8K Ultrawide (7680×2160)</option>
-          </optgroup>
-          <optgroup label="Apple:">
-            <option value="2560x1664">MacBook Air 13" (2560×1664)</option>
-            <option value="2880x1864">MacBook Air 15" (2880×1864)</option>
-            <option value="3024x1964">MacBook Pro 14" (3024×1964)</option>
-            <option value="3456x2234">MacBook Pro 16" (3456×2234)</option>
-            <option value="5120x2880">Apple Studio Display 27" (5120×2880)</option>
-            <option value="6016x3384">Apple Pro Display XDR 32" (6016×3384)</option>
-          </optgroup>
-          <option value="custom">Custom...</option>
-        </select>
-      </div>
-      <div class="field" id="custom-res-field" style="display:none; flex-direction:column; gap:8px;">
-        <div style="display:flex; gap:8px;">
-          <input type="number" id="d-custom-w" placeholder="Width px" min="1">
-          <input type="number" id="d-custom-h" placeholder="Height px" min="1">
+
+      <!-- MODE 1: find ideal viewing distance -->
+      <div id="mode-distance">
+        <div class="field">
+          <label>Screen size (inches, diagonal)</label>
+          <input type="number" id="d-size" placeholder="e.g. 27" min="1">
         </div>
+        <div class="field">
+          <label>Resolution</label>
+          <select id="d-res">
+            <optgroup label="Windows / Standard:">
+              <option value="1920x1080">1080p — 1920×1080</option>
+              <option value="2560x1440">1440p — 2560×1440</option>
+              <option value="3840x2160">4K — 3840×2160</option>
+              <option value="2560x1080">Ultrawide 1080p — 2560×1080</option>
+              <option value="3440x1440">Ultrawide 1440p — 3440×1440</option>
+              <option value="3840x1600">4K Ultrawide standard (3840×1600)</option>
+              <option value="5120x2160">4K Ultrawide true (5120×2160)</option>
+              <option value="7680x2160">8K Ultrawide (7680×2160)</option>
+            </optgroup>
+            <optgroup label="Apple:">
+              <option value="2560x1664">MacBook Air 13" (2560×1664)</option>
+              <option value="2880x1864">MacBook Air 15" (2880×1864)</option>
+              <option value="3024x1964">MacBook Pro 14" (3024×1964)</option>
+              <option value="3456x2234">MacBook Pro 16" (3456×2234)</option>
+              <option value="5120x2880">Apple Studio Display 27" (5120×2880)</option>
+              <option value="6016x3384">Apple Pro Display XDR 32" (6016×3384)</option>
+            </optgroup>
+            <option value="custom">Custom...</option>
+          </select>
+        </div>
+        <div class="field" id="custom-res-field" style="display:none; flex-direction:column; gap:8px;">
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="d-custom-w" placeholder="Width px" min="1">
+            <input type="number" id="d-custom-h" placeholder="Height px" min="1">
+          </div>
+        </div>
+        <button class="calculate" onclick="calcDistance()">Calculate</button>
       </div>
-      <button class="calculate" onclick="calcDistance()">Calculate</button>
+
+      <!-- MODE 2: find minimum resolution -->
+      <div id="mode-resolution" style="display:none;">
+        <div class="field">
+          <label>Screen size (inches, diagonal)</label>
+          <input type="number" id="r-size" placeholder="e.g. 27" min="1">
+        </div>
+        <div class="field">
+          <label>Viewing distance (cm)</label>
+          <input type="number" id="r-dist" placeholder="e.g. 60" min="1">
+        </div>
+        <button class="calculate" onclick="calcResolution()">Calculate</button>
+      </div>
+
+      <p class="error" id="error-msg">Please fill in all fields correctly.</p>
+
+      <div class="results" id="results"></div>
     </div>
-
-    <!-- MODE 2: find minimum resolution -->
-    <div id="mode-resolution" style="display:none;">
-      <div class="field">
-        <label>Screen size (inches, diagonal)</label>
-        <input type="number" id="r-size" placeholder="e.g. 27" min="1">
-      </div>
-      <div class="field">
-        <label>Viewing distance (cm)</label>
-        <input type="number" id="r-dist" placeholder="e.g. 60" min="1">
-      </div>
-      <button class="calculate" onclick="calcResolution()">Calculate</button>
-    </div>
-
-    <p class="error" id="error-msg">Please fill in all fields correctly.</p>
-
-    <div class="results" id="results"></div>
   </div>
 
   <script>
@@ -350,7 +494,7 @@
           <span class="result-label">${item.label}</span>
           <div style="text-align:right">
             <div class="result-value">${item.value}</div>
-            <div style="font-size:0.75rem; color:#555;">${item.sub}</div>
+            <div class="result-sub">${item.sub}</div>
           </div>
         </div>
       `).join('') + `<p class="result-note">${note}</p>`;
