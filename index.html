@@ -3,9 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCRigCheck — Know your rig before you build it</title>
-<meta name="description" content="Free tools to spot bottlenecks and pick the right monitor for your PC build, before you spend a penny.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
+  <title>PCRigCheck | Free PC Bottleneck Checker &amp; Monitor Advisor</title>
+  <meta name="description" content="Free PC tools: check if your CPU and GPU are bottlenecking each other, and find the right monitor resolution for your screen size and viewing distance.">
+  <link rel="canonical" href="https://pcrigcheck.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PCRigCheck">
+  <meta property="og:title" content="PCRigCheck | Free PC Bottleneck Checker &amp; Monitor Advisor">
+  <meta property="og:description" content="Free PC tools: check if your CPU and GPU are bottlenecking each other, and find the right monitor resolution for your screen size and viewing distance.">
+  <meta property="og:url" content="https://pcrigcheck.com/">
+  <meta property="og:image" content="https://pcrigcheck.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PCRigCheck | Free PC Bottleneck Checker &amp; Monitor Advisor">
+  <meta name="twitter:description" content="Free PC tools: check if your CPU and GPU are bottlenecking each other, and find the right monitor resolution for your screen size and viewing distance.">
+  <meta name="twitter:image" content="https://pcrigcheck.com/og-image.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -65,14 +80,7 @@
   }
   nav{ display:flex; align-items:center; justify-content:space-between; padding: 18px 0; }
   .brand{ display:flex; align-items:center; gap:10px; font-family:"Space Grotesk"; font-weight:700; font-size: 1.15rem; letter-spacing: -0.01em; text-decoration:none; }
-  .brand-mark{
-    width: 26px; height: 26px; border: 1.5px solid var(--cyan); border-radius: 6px;
-    display:flex; align-items:center; justify-content:center; position: relative;
-  }
-  .brand-mark::before{
-    content:""; width: 8px; height: 8px; background: var(--cyan); border-radius: 1px;
-    box-shadow: 0 0 8px var(--cyan);
-  }
+  .brand-mark{ width: 32px; height: 32px; display:block; flex-shrink:0; }
   nav ul{ list-style:none; display:flex; gap: 32px; margin:0; padding:0; }
   nav a.navlink{ text-decoration:none; color: var(--text-dim); font-size: 0.94rem; transition: color .15s ease; }
   nav a.navlink:hover{ color: var(--text); }
@@ -219,7 +227,7 @@
 <header>
   <div class="wrap">
     <nav>
-      <a href="#top" class="brand"><span class="brand-mark"></span>PCRigCheck</a>
+      <a href="#top" class="brand"><img class="brand-mark" src="logo-mark.svg" alt="" width="32" height="32">PCRigCheck</a>
       <ul>
         <li><a class="navlink" href="#tools">Tools</a></li>
         <li><a class="navlink" href="#how">How it works</a></li>
@@ -245,7 +253,7 @@
         </div>
         <div class="stat-row">
           <div class="stat"><div class="num">125</div><div class="label">CPUs benchmarked</div></div>
-          <div class="stat"><div class="num">47</div><div class="label">GPUs benchmarked</div></div>
+          <div class="stat"><div class="num">49</div><div class="label">GPUs benchmarked</div></div>
           <div class="stat"><div class="num">£0</div><div class="label">cost to use</div></div>
         </div>
       </div>
@@ -300,7 +308,7 @@
         <div class="tool-card">
           <span class="tool-tag">tool 01 · pairing analysis</span>
           <h3>Bottleneck Checker</h3>
-          <p class="desc">Pick any CPU and GPU pairing and see which one is holding the other back, and by how much — scored against real benchmark data, not a guess.</p>
+          <p class="desc">Pick any CPU and GPU pairing and see which one is holding the other back, and by how much — based on benchmark scores, not a guess.</p>
           <div class="tool-visual">
             <div class="bb-viz">
               <div class="bb-bar tall"></div>
@@ -343,7 +351,7 @@
         <div class="step">
           <span class="idx">02</span>
           <h3>We normalise the benchmarks</h3>
-          <p>Every part is scored against the dataset using z-score normalisation, so a budget CPU and a flagship GPU are compared fairly.</p>
+          <p>Every part gets a benchmark score, then a ranking within its own group (CPUs against CPUs, GPUs against GPUs), so a budget CPU and a flagship GPU are compared fairly.</p>
         </div>
         <div class="step">
           <span class="idx">03</span>
@@ -359,12 +367,12 @@
     <div class="wrap about">
       <div>
         <h2 style="font-size: clamp(1.6rem, 2.6vw, 2.1rem); letter-spacing: -0.01em; margin-bottom: 18px;">Built by someone who kept getting this wrong</h2>
-        <p>PCRigCheck started as a way to stop guessing whether a part upgrade was actually worth it. The bottleneck checker exists because most online calculators use flawed benchmark methodology — this one doesn't.</p>
+        <p>PCRigCheck started as a way to stop guessing whether a part upgrade was actually worth it. The bottleneck checker ranks each part against others in its category, so you get a straight answer instead of a vague percentage.</p>
         <p>More tools and component write-ups are on the way as the dataset grows.</p>
       </div>
       <div class="about-panel">
-        <div class="row"><span>dataset</span><span>125 CPUs · 47 GPUs</span></div>
-        <div class="row"><span>scoring method</span><span>z-score normalised</span></div>
+        <div class="row"><span>dataset</span><span>125 CPUs · 49 GPUs</span></div>
+        <div class="row"><span>scoring method</span><span>percentile rank gap</span></div>
         <div class="row"><span>cost</span><span>free, always</span></div>
         <div class="row"><span>status</span><span style="color:#45E0D0;">active development</span></div>
       </div>
@@ -376,7 +384,7 @@
 <footer>
   <div class="wrap">
     <div class="footer-row">
-      <a href="#top" class="brand"><span class="brand-mark"></span>PCRigCheck</a>
+      <a href="#top" class="brand"><img class="brand-mark" src="logo-mark.svg" alt="" width="32" height="32">PCRigCheck</a>
       <ul class="footer-links">
         <li><a href="bottleneck-checker.html">Bottleneck Checker</a></li>
         <li><a href="monitor-advisor.html">Monitor Advisor</a></li>

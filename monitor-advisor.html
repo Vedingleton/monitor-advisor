@@ -3,7 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitor Advisor | PCRigCheck</title>
+  <title>Monitor Resolution &amp; Viewing Distance Calculator | PCRigCheck</title>
+  <meta name="description" content="Free monitor calculator. Enter your screen size and resolution to find the best viewing distance, or enter your distance to find the resolution you need.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="canonical" href="https://pcrigcheck.com/monitor-advisor.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PCRigCheck">
+  <meta property="og:title" content="Monitor Resolution &amp; Viewing Distance Calculator | PCRigCheck">
+  <meta property="og:description" content="Free monitor calculator. Enter your screen size and resolution to find the best viewing distance, or enter your distance to find the resolution you need.">
+  <meta property="og:url" content="https://pcrigcheck.com/monitor-advisor.html">
+  <meta property="og:image" content="https://pcrigcheck.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Monitor Resolution &amp; Viewing Distance Calculator | PCRigCheck">
+  <meta name="twitter:description" content="Free monitor calculator. Enter your screen size and resolution to find the best viewing distance, or enter your distance to find the resolution you need.">
+  <meta name="twitter:image" content="https://pcrigcheck.com/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -79,22 +96,7 @@
       background: rgba(69,224,208,0.06);
     }
 
-    .nav-btn.home .mark {
-      width: 14px; height: 14px;
-      border: 1.5px solid var(--cyan);
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .nav-btn.home .mark::before {
-      content: "";
-      width: 4px; height: 4px;
-      background: var(--cyan);
-      border-radius: 1px;
-      box-shadow: 0 0 6px var(--cyan);
-    }
+    .nav-btn.home .mark { width: 22px; height: 22px; display: block; flex-shrink: 0; }
 
     /* ---------- card ---------- */
     .card {
@@ -293,7 +295,7 @@
 
   <div class="page">
     <nav class="topnav">
-      <a class="nav-btn home" href="index.html"><span class="mark"></span>← PCRigCheck.com</a>
+      <a class="nav-btn home" href="index.html"><img class="mark" src="logo-mark.svg" alt="" width="22" height="22">← PCRigCheck.com</a>
       <a class="nav-btn" href="bottleneck-checker.html">Bottleneck Checker →</a>
     </nav>
 
