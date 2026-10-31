@@ -3,7 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PC Bottleneck Checker | PCRigCheck</title>
+  <title>PC Bottleneck Checker: Free CPU &amp; GPU Pairing Tool | PCRigCheck</title>
+  <meta name="description" content="Free PC bottleneck checker. Pick any CPU and GPU and see which one is holding the other back, with a clear verdict and upgrade advice.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="canonical" href="https://pcrigcheck.com/bottleneck-checker.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PCRigCheck">
+  <meta property="og:title" content="PC Bottleneck Checker: Free CPU &amp; GPU Pairing Tool | PCRigCheck">
+  <meta property="og:description" content="Free PC bottleneck checker. Pick any CPU and GPU and see which one is holding the other back, with a clear verdict and upgrade advice.">
+  <meta property="og:url" content="https://pcrigcheck.com/bottleneck-checker.html">
+  <meta property="og:image" content="https://pcrigcheck.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PC Bottleneck Checker: Free CPU &amp; GPU Pairing Tool | PCRigCheck">
+  <meta name="twitter:description" content="Free PC bottleneck checker. Pick any CPU and GPU and see which one is holding the other back, with a clear verdict and upgrade advice.">
+  <meta name="twitter:image" content="https://pcrigcheck.com/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -90,22 +107,7 @@
       background: rgba(69,224,208,0.06);
     }
 
-    .nav-btn.home .mark {
-      width: 14px; height: 14px;
-      border: 1.5px solid var(--cyan);
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .nav-btn.home .mark::before {
-      content: "";
-      width: 4px; height: 4px;
-      background: var(--cyan);
-      border-radius: 1px;
-      box-shadow: 0 0 6px var(--cyan);
-    }
+    .nav-btn.home .mark { width: 22px; height: 22px; display: block; flex-shrink: 0; }
 
     /* ── HEADER ── */
     header {
@@ -375,6 +377,19 @@
     }
     .pct-explainer-body p + p { margin-top: 8px; }
     .pct-explainer-body strong { color: var(--text); font-weight: 500; }
+    .verdict-caveat {
+      margin-top: 8px;
+      font-size: 0.74rem;
+      line-height: 1.5;
+      color: var(--text-faint);
+      max-width: 340px;
+    }
+    .stat-chip-rank {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
     .bottleneck-pct-label {
       font-size: 0.8rem;
       color: var(--text-dim);
@@ -563,7 +578,7 @@
 <div class="container">
 
   <nav class="topnav">
-    <a class="nav-btn home" href="index.html"><span class="mark"></span>← PCRigCheck.com</a>
+    <a class="nav-btn home" href="index.html"><img class="mark" src="logo-mark.svg" alt="" width="22" height="22">← PCRigCheck.com</a>
     <a class="nav-btn" href="monitor-advisor.html">Monitor Advisor →</a>
   </nav>
 
@@ -633,6 +648,7 @@
         <div style="margin-top:14px">
           <div id="bottleneck-pct" class="bottleneck-pct" style="color: var(--cyan)">—</div>
           <div class="bottleneck-pct-label">Bottleneck Severity</div>
+          <div class="verdict-caveat">Estimate based on how the two parts rank, not a benchmark of your exact setup. Real results vary by game, resolution and settings.</div>
           <details class="pct-explainer">
             <summary>What does this % mean?</summary>
             <div class="pct-explainer-body">
@@ -647,10 +663,12 @@
         <div class="stat-chip">
           <div class="stat-chip-val" id="stat-cpu-score">—</div>
           <div class="stat-chip-label">CPU Score</div>
+          <div class="stat-chip-rank" id="stat-cpu-rank"></div>
         </div>
         <div class="stat-chip">
           <div class="stat-chip-val" id="stat-gpu-score">—</div>
           <div class="stat-chip-label">GPU Score</div>
+          <div class="stat-chip-rank" id="stat-gpu-rank"></div>
         </div>
         <div class="stat-chip">
           <div class="stat-chip-val" id="stat-ratio">—</div>
@@ -1030,18 +1048,18 @@ function runCheck() {
   }
 
   if (diff <= 5) {
-    adviceText = `Your <strong>${cpu.name}</strong> and <strong>${gpu.name}</strong> are extremely well matched — neither component is holding the other back. This is an ideal pairing. Expect excellent gaming performance with no wasted hardware potential.`;
+    adviceText = `Your <strong>${cpu.name}</strong> and <strong>${gpu.name}</strong> sit in a similar tier, so neither part should hold the other back much in typical gaming. This is a well-matched pairing.`;
   } else if (cpuTier < gpuTier) {
     if (pctNum >= 30) {
-      adviceText = `Your <strong>${gpu.name}</strong> is significantly more powerful than your <strong>${cpu.name}</strong> can handle. The GPU will be starved of work — especially in CPU-intensive games like open world titles, strategy games, and anything with heavy AI. Consider upgrading your CPU to unlock your GPU's full potential.`;
+      adviceText = `Your <strong>${gpu.name}</strong> sits in a much higher tier than your <strong>${cpu.name}</strong>. In games that lean heavily on the CPU, the GPU may end up waiting on it, so you could see lower frame rates than the GPU is capable of. A CPU upgrade is likely the most effective next step.`;
     } else {
-      adviceText = `Your <strong>${gpu.name}</strong> is noticeably faster than your <strong>${cpu.name}</strong>. The CPU will limit performance in CPU-heavy scenarios and at lower resolutions (1080p). At 1440p or 4K, this gap matters less. Upgrading the CPU would bring a meaningful improvement in games like Cyberpunk 2077, Fortnite, and open world titles.`;
+      adviceText = `Your <strong>${gpu.name}</strong> ranks higher than your <strong>${cpu.name}</strong>. The CPU is more likely to be the limit at lower resolutions and high refresh rates, and less so when the GPU is doing more of the work. A CPU upgrade would help most in CPU-heavy games.`;
     }
   } else {
     if (pctNum >= 30) {
-      adviceText = `Your <strong>${cpu.name}</strong> is far more capable than your <strong>${gpu.name}</strong>. The GPU is the hard ceiling here — frame rates will be limited in almost all games. Your CPU power is being wasted. Upgrading the GPU will make a dramatic difference in gaming performance.`;
+      adviceText = `Your <strong>${cpu.name}</strong> sits in a much higher tier than your <strong>${gpu.name}</strong>. In most games the GPU will be what limits your frame rate, and the extra CPU power won't show much. A GPU upgrade is likely the most effective next step.`;
     } else {
-      adviceText = `Your <strong>${cpu.name}</strong> has more headroom than your <strong>${gpu.name}</strong> can utilise. This is a common and actually reasonable situation for gaming — the GPU is always the target for upgrades. At higher resolutions (1440p / 4K) this bottleneck becomes more pronounced. Upgrading the GPU is the best next step.`;
+      adviceText = `Your <strong>${cpu.name}</strong> has more headroom than your <strong>${gpu.name}</strong> can use. For gaming that's a sensible setup, since the GPU is usually what limits frame rate. The GPU limit tends to show more at higher resolutions and settings, so a GPU upgrade is the best next step.`;
     }
   }
 
@@ -1058,6 +1076,8 @@ function runCheck() {
   document.getElementById('stat-cpu-score').textContent = cpuScore + '%';
   document.getElementById('stat-gpu-score').textContent = gpuScore + '%';
   document.getElementById('stat-ratio').textContent = ratio + 'x';
+  document.getElementById('stat-cpu-rank').textContent = 'rank ' + cpuTier.toFixed(1) + '%';
+  document.getElementById('stat-gpu-rank').textContent = 'rank ' + gpuTier.toFixed(1) + '%';
 
   document.getElementById('bar-cpu-name').textContent = cpu.name;
   document.getElementById('bar-gpu-name').textContent = gpu.name;
