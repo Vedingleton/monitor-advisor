@@ -384,7 +384,8 @@
       document.getElementById('custom-res-field').style.display = this.value === 'custom' ? 'flex' : 'none';
     });
 
-    // Core formula: ideal distance = pixel_pitch_mm * 3438
+    // Core formula: distance beyond which pixels blend together = pixel_pitch_mm * 2600
+    // (3438 is the strict 1 arcminute limit; 2600 is a slightly more forgiving everyday rule of thumb)
     // pixel_pitch = (screen_size_inches * 25.4) / diagonal_pixels
     // diagonal_pixels = sqrt(w^2 + h^2)
 
@@ -430,7 +431,7 @@
         { label: 'Minimum recommended seating distance:', value: Math.round(dist) + ' cm', sub: Math.round(dist / 2.54) + ' inches' },
         { label: 'Pixel density:', value: Math.round(ppi) + ' PPI', sub: 'pixels per inch' },
         { label: 'Pixel pitch:', value: ((size * 25.4) / Math.sqrt(w*w+h*h)).toFixed(3) + ' mm', sub: 'physical size of one pixel' }
-      ], 'Sitting closer than ' + Math.round(dist) + ' cm, individual pixels become invisible to 20/20 vision. Beyond this distance, higher resolution won\'t help.');
+      ], 'Sitting further than ' + Math.round(dist) + ' cm, individual pixels blend together for most people, and a higher resolution won\'t look any sharper. Closer than that, you may start to notice individual pixels.');
     }
 
     function calcResolution() {
