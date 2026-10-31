@@ -3,24 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PC Bottleneck Checker: Free CPU &amp; GPU Pairing Tool | PCRigCheck</title>
-  <meta name="description" content="Free PC bottleneck checker. Pick any CPU and GPU and see which one is holding the other back, with a clear verdict and upgrade advice.">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="canonical" href="https://pcrigcheck.com/bottleneck-checker.html">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="PCRigCheck">
-  <meta property="og:title" content="PC Bottleneck Checker: Free CPU &amp; GPU Pairing Tool | PCRigCheck">
-  <meta property="og:description" content="Free PC bottleneck checker. Pick any CPU and GPU and see which one is holding the other back, with a clear verdict and upgrade advice.">
-  <meta property="og:url" content="https://pcrigcheck.com/bottleneck-checker.html">
-  <meta property="og:image" content="https://pcrigcheck.com/og-image.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="PC Bottleneck Checker: Free CPU &amp; GPU Pairing Tool | PCRigCheck">
-  <meta name="twitter:description" content="Free PC bottleneck checker. Pick any CPU and GPU and see which one is holding the other back, with a clear verdict and upgrade advice.">
-  <meta name="twitter:image" content="https://pcrigcheck.com/og-image.png">
+  <title>PC Bottleneck Checker | PCRigCheck</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -107,7 +90,22 @@
       background: rgba(69,224,208,0.06);
     }
 
-    .nav-btn.home .mark { width: 22px; height: 22px; display: block; flex-shrink: 0; }
+    .nav-btn.home .mark {
+      width: 14px; height: 14px;
+      border: 1.5px solid var(--cyan);
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn.home .mark::before {
+      content: "";
+      width: 4px; height: 4px;
+      background: var(--cyan);
+      border-radius: 1px;
+      box-shadow: 0 0 6px var(--cyan);
+    }
 
     /* ── HEADER ── */
     header {
@@ -355,6 +353,28 @@
       line-height: 1;
     }
 
+    .pct-explainer { margin-top: 10px; max-width: 340px; }
+    .pct-explainer summary {
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: var(--cyan);
+      list-style: none;
+      user-select: none;
+    }
+    .pct-explainer summary::-webkit-details-marker { display: none; }
+    .pct-explainer summary::before { content: 'ⓘ '; }
+    .pct-explainer summary:hover { text-decoration: underline; }
+    .pct-explainer-body {
+      margin-top: 8px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: var(--text-dim);
+    }
+    .pct-explainer-body p + p { margin-top: 8px; }
+    .pct-explainer-body strong { color: var(--text); font-weight: 500; }
     .bottleneck-pct-label {
       font-size: 0.8rem;
       color: var(--text-dim);
@@ -543,7 +563,7 @@
 <div class="container">
 
   <nav class="topnav">
-    <a class="nav-btn home" href="index.html"><img class="mark" src="logo-mark.svg" alt="" width="22" height="22">← PCRigCheck.com</a>
+    <a class="nav-btn home" href="index.html"><span class="mark"></span>← PCRigCheck.com</a>
     <a class="nav-btn" href="monitor-advisor.html">Monitor Advisor →</a>
   </nav>
 
@@ -613,6 +633,14 @@
         <div style="margin-top:14px">
           <div id="bottleneck-pct" class="bottleneck-pct" style="color: var(--cyan)">—</div>
           <div class="bottleneck-pct-label">Bottleneck Severity</div>
+          <details class="pct-explainer">
+            <summary>What does this % mean?</summary>
+            <div class="pct-explainer-body">
+              <p>It's the <strong>gap in tier</strong> between your two parts, not lost FPS. We rank every CPU against all other CPUs, and every GPU against all other GPUs, then compare where yours land. A CPU in the top 10% paired with a GPU in the bottom 50% is a big gap.</p>
+              <p id="pct-explainer-live"></p>
+              <p>That's why the scores on the left can look different: CPU and GPU scores are on separate scales, so we compare <strong>rank</strong>, not raw score. Under 5% is balanced, 5–15% mild, 15–30% moderate, 30%+ severe.</p>
+            </div>
+          </details>
         </div>
       </div>
       <div class="stat-row" style="align-items:flex-start">
@@ -860,10 +888,14 @@ const gpuData = [
 const cpuScores = cpuData.map(c => c.score);
 const gpuScores = gpuData.map(g => g.score);
 
+// Mid-rank percentile: tied scores always get the same percentile
 function rankPercentile(item, data) {
-  const sorted = [...data].sort((a, b) => b.score - a.score);
-  const idx = sorted.findIndex(d => d.name === item.name);
-  return ((data.length - 1 - idx) / (data.length - 1)) * 100;
+  let below = 0, equal = 0;
+  for (const d of data) {
+    if (d.score < item.score) below++;
+    else if (d.score === item.score) equal++;
+  }
+  return ((below + (equal - 1) / 2) / (data.length - 1)) * 100;
 }
 
 function getUniqueSeries(data) {
@@ -1033,6 +1065,9 @@ function runCheck() {
   document.getElementById('bar-gpu-score').textContent = gpuScore + '%';
 
   document.getElementById('advice-text').innerHTML = adviceText;
+
+  document.getElementById('pct-explainer-live').innerHTML =
+    `<strong>Your pair:</strong> ${cpu.name} sits at the ${cpuTier.toFixed(1)}th percentile of ${cpuData.length} CPUs, ${gpu.name} at the ${gpuTier.toFixed(1)}th percentile of ${gpuData.length} GPUs. The ${bottleneckPct}% is the difference, and the ${limiter} is the lower-ranked part.`;
 
   card.classList.add('visible');
 
